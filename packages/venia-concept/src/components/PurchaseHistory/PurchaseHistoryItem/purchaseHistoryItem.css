@@ -1,0 +1,41 @@
+.body {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 17px 23px 9.5px 0px;
+    border-bottom: 1px solid #ececed;
+}
+
+.body:first-child {
+    border-top: 1px solid #ececed;
+}
+
+.titleImage {
+    max-height: 100%;
+    min-height: 60px;
+    min-width: 48px;
+}
+
+.textBlock {
+    display: inline-block;
+    height: 36px;
+    width: 164px;
+    margin-left: 12px;
+}
+
+.textBlockTitle {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+}
+
+.textBlockDate {
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 14px;
+}
+
+.chevronContainer {
+    position: absolute;
+    right: 23px;
+}

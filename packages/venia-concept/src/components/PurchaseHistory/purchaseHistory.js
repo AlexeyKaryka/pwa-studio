@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
-import { shape, string } from 'prop-types';
-import { List } from '@magento/peregrine';
+import { shape, string, number, arrayOf } from 'prop-types';
 
 import PurchaseHistoryItem from './PurchaseHistoryItem';
 import classify from 'src/classify';
 import defaultClasses from './purchaseHistory.css';
 import Filter from './Filter';
 
-const mockPurchaseHistory = [
+let List;
+
+export const mockPurchaseHistory = [
     {
         id: 1,
         imageSrc: 'asd',
@@ -42,7 +43,16 @@ class PurchaseHistory extends Component {
     static propTypes = {
         classes: shape({
             body: string
-        })
+        }),
+        items: arrayOf(
+            shape({
+                id: number.isRequired,
+                imageSrc: string,
+                title: string,
+                date: string,
+                link: string.isRequired,
+            })
+        )
     };
 
     // componentDidMount() {
@@ -54,15 +64,20 @@ class PurchaseHistory extends Component {
     // }
 
     render() {
-        const { classes } = this.props;
+        if (!List) {
+            List = require('@magento/peregrine').List;
+            console.log(List);
+        }
+        const { classes, items } = this.props;
+
         return (
             <div className={classes.body}>
                 <div className={classes.filterContainer}>
                     <Filter />
                 </div>
                 <List
-                    //classes={}
-                    items={mockPurchaseHistory}
+                    classes={classes.list}
+                    items={items}
                     getItemKey={({ id }) => id}
                     render={props => (
                         <div className={classes.itemsContainer}>

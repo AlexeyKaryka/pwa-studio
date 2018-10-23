@@ -23,7 +23,7 @@ class PurchaseHistoryItem extends Component {
     render() {
         const {
             classes,
-            item: { imageSrc, title, date, link }
+            item: { id, imageSrc, title, date, link }
         } = this.props;
 
         const trimedTitle =

@@ -7,6 +7,10 @@
     padding: 13px 28px 0;
 }
 
+.list {
+
+}
+
 .itemsContainer {
     display: flex;
     flex-direction: column;

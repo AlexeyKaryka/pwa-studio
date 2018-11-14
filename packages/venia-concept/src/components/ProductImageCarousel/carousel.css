@@ -1,4 +1,5 @@
 .root {
+    position: relative;
     display: grid;
     grid-template-areas:
         'main'
@@ -22,3 +23,23 @@
     grid-area: main;
     width: 100%;
 }
+
+.chevronLeft, .chevronRight {
+    position: absolute;
+    top: 50%;
+}
+
+.chevronLeft {
+    left: 26px;
+}
+
+.chevronRight {
+    right: 26px;
+}
+
+@media (min-width: 1024px) {
+    .chevronLeft, .chevronRight {
+        display: none;
+    }
+}
+

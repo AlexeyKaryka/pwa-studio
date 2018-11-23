@@ -1,29 +1,24 @@
 import React, { Component } from 'react';
 import { PropTypes } from 'prop-types';
+import { Text } from 'informed';
 import defaultClasses from './input.css';
 import classify from 'src/classify';
-import { Text } from 'informed';
-
-export const HelpTypes = {
-    hint: 'hint',
-    error: 'error',
-    success: 'success'
-};
+import Icon from 'src/components/Icon';
+import { resetButtonIcon, HelpTypes } from './constants';
+import { validatorNotEmpty, dumpValidator } from './helpers';
 
 class Input extends Component {
     static propTypes = {
         classes: PropTypes.shape({
             helpText: PropTypes.string,
-            hint: PropTypes.string,
-            error: PropTypes.string,
-            success: PropTypes.string,
             label: PropTypes.string,
             labelFocused: PropTypes.string,
             root: PropTypes.string,
             input: PropTypes.string,
-            rootFocused: PropTypes.string
+            inputContainer: PropTypes.string,
+            rootFocused: PropTypes.string,
+            resetInput: PropTypes.string
         }),
-
         initialValue: PropTypes.string,
         placeholder: PropTypes.string,
         label: PropTypes.string.isRequired,
@@ -32,30 +27,48 @@ class Input extends Component {
         required: PropTypes.bool,
         title: PropTypes.string,
         autoComplete: PropTypes.string,
-        helpText: PropTypes.string,
         helpType: PropTypes.string,
+        helpText: PropTypes.string,
+        getHelpText: PropTypes.func,
+        fieldValue: PropTypes.string,
+        setFieldValue: PropTypes.func,
         field: PropTypes.string.isRequired,
-        onChange: PropTypes.func
+        onChange: PropTypes.func,
+        validator: PropTypes.func,
+        validatorNotEmpty: PropTypes.func,
+        validateOnChange: PropTypes.bool
     };
 
     static defaultProps = {
+        initialValue: '',
         disabled: false,
-        helpVisible: true,
-        helpType: HelpTypes.hint
+        helpType: HelpTypes.hint,
+        helpText: '',
+        validator: dumpValidator,
+        validatorNotEmpty,
+        validateOnChange: false
     };
 
     state = {
-        value: this.props.initialValue,
-        focused: false,
-        dirty: false
+        focused: false
+    };
+
+    complexValidator = (value, values = null) => {
+        const { validator, validatorNotEmpty, required } = this.props;
+
+        return required
+            ? validatorNotEmpty(value) || validator(value, values)
+            : validator(value, values);
     };
 
     get helpText() {
-        const { helpVisible, classes, helpText, helpType } = this.props;
+        const { classes, helpText, getHelpText, helpType } = this.props;
         let helpTypeClass = `${classes.helpText} ${classes[helpType]}`;
 
-        return helpVisible ? (
-            <div className={helpTypeClass}>{helpText}</div>
+        return helpText || getHelpText ? (
+            <div className={helpTypeClass}>
+                {helpText ? helpText : getHelpText()}
+            </div>
         ) : null;
     }
 
@@ -82,22 +95,45 @@ class Input extends Component {
         return required ? <div className={classes.requiredSymbol} /> : null;
     }
 
+    get resetButton() {
+        const { classes } = this.props;
+        const { name, attrs } = resetButtonIcon;
+        return (
+            <button
+                type="button"
+                className={classes.resetInput}
+                onClick={this.resetValue}
+            >
+                <Icon name={name} attrs={attrs} />
+            </button>
+        );
+    }
+
+    resetValue = () => {
+        this.props.setFieldValue(null);
+    };
+
     render() {
-        const { helpText, labelText, requiredSymbol, rootClass } = this;
+        const {
+            helpText,
+            labelText,
+            requiredSymbol,
+            rootClass,
+            complexValidator,
+            resetButton
+        } = this;
         const {
             classes,
             placeholder,
             type,
             disabled,
-            required,
             title,
-            initialValue
+            initialValue,
+            validateOnChange,
+            fieldValue
         } = this.props;
         let { autoComplete, field } = this.props;
 
-        if (!this.state.dirty) {
-            field = initialValue ? initialValue : field;
-        }
         autoComplete = !autoComplete ? 'off' : autoComplete;
 
         return (
@@ -105,29 +141,32 @@ class Input extends Component {
                 <span className={classes.label}>
                     {requiredSymbol} {labelText}
                 </span>
-                <Text
-                    initialValue={initialValue}
-                    className={classes.input}
-                    placeholder={placeholder}
-                    type={type}
-                    disabled={disabled}
-                    required={required}
-                    title={title}
-                    autoComplete={autoComplete}
-                    onChange={this.handleChange}
-                    onFocus={this.focusTextInput}
-                    onBlur={this.blurTextInput}
-                    field={field}
-                />
+                <div className={classes.inputContainer}>
+                    <Text
+                        initialValue={initialValue}
+                        className={classes.input}
+                        placeholder={placeholder}
+                        type={type}
+                        disabled={disabled}
+                        title={title}
+                        autoComplete={autoComplete}
+                        onChange={this.handleChange}
+                        onFocus={this.focusTextInput}
+                        onBlur={this.blurTextInput}
+                        field={field}
+                        validate={complexValidator}
+                        validateOnChange={validateOnChange}
+                    />
+                    {fieldValue ? resetButton : null}
+                </div>
                 {helpText}
             </div>
         );
     }
 
-    handleChange = event => {
-        this.setState({ value: event.target.value });
-        this.props.onChange ? this.props.onChange(event.target.value) : null;
-        this.makeDirty();
+    handleChange = () => {
+        const { onChange, fieldValue } = this.props;
+        onChange && onChange(fieldValue);
     };
 
     focusTextInput = () => {
@@ -136,12 +175,6 @@ class Input extends Component {
 
     blurTextInput = () => {
         this.setState({ focused: false });
-    };
-
-    makeDirty = () => {
-        if (!this.state.dirty) {
-            this.setState({ dirty: true });
-        }
     };
 }
 

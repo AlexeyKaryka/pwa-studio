@@ -10,6 +10,7 @@
     bottom: 5.5rem;
     box-shadow: 0 -1px rgb(var(--venia-border));
     display: grid;
+    grid-template-columns: 50% 50%;
     left: 0;
     position: absolute;
     right: 0;

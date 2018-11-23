@@ -5,32 +5,32 @@ import Input from '../input';
 
 configure({ adapter: new Adapter() });
 
-const validInput = {
-    value: 'example value',
+const classes = {
+    resetInput: 'resetInput'
+};
+
+const validInputProps = {
+    initialValue: 'example initial value',
+    fieldValue: 'field value',
+    setFieldValue: value => `changes value to ${value}`,
+    getIsFieldTouched: () => false,
     placeholder: 'Enter username here',
     label: 'Username',
     type: 'Text',
     disabled: false,
     required: false,
     helpText: 'example help text',
-    helpVisible: true,
-    errorVisible: true,
-    successVisible: true,
-    onChange: null,
-    field: 'value'
+    getHelpText: () => 'example help text',
+    onChange: () => null,
+    onFocus: () => null,
+    onBlur: () => null,
+    field: 'value',
+    validate: () => null,
+    validateOnChange: true
 };
 
 test('correctly assigns all props passed to `input` field', () => {
-    const wrapper = shallow(
-        <Input
-            label={validInput.label}
-            type={validInput.type}
-            disabled={validInput.disabled}
-            placeholder={validInput.placeholder}
-            required={validInput.required}
-            field={validInput.field}
-        />
-    );
+    const wrapper = shallow(<Input {...validInputProps} />);
 
     const wrapperProps = wrapper
         .dive()
@@ -38,53 +38,41 @@ test('correctly assigns all props passed to `input` field', () => {
         .props();
 
     const typeProp = wrapperProps.type;
-    expect(typeProp).toEqual(validInput.type);
+    expect(typeProp).toEqual(validInputProps.type);
 
     const disabledProp = wrapperProps.disabled;
-    expect(disabledProp).toEqual(validInput.disabled);
+    expect(disabledProp).toEqual(validInputProps.disabled);
 
     const placeholderProp = wrapperProps.placeholder;
-    expect(placeholderProp).toEqual(validInput.placeholder);
+    expect(placeholderProp).toEqual(validInputProps.placeholder);
 
-    const requiredProp = wrapperProps.required;
-    expect(requiredProp).toEqual(validInput.required);
+    const initialValueProp = wrapperProps.initialValue;
+    expect(initialValueProp).toEqual(validInputProps.initialValue);
 });
 
 test('displays `helpText` when `helpVisible`', () => {
-    const wrapper = shallow(
-        <Input
-            label={validInput.label}
-            helpText={validInput.helpText}
-            helpVisible={validInput.helpVisible}
-            field={validInput.field}
-        />
-    ).dive();
+    const wrapper = shallow(<Input {...validInputProps} />).dive();
 
     const helpText = shallow(wrapper.instance().helpText);
-    expect(helpText.html()).toContain(validInput.helpText);
-});
-
-test('set `value` state when text is entered into `input`', () => {
-    const changeValue = 'foo';
-    const event = {
-        preventDefault() {},
-        target: { value: changeValue }
-    };
-
-    const wrapper = shallow(
-        <Input label={validInput.label} field={validInput.field} />
-    ).dive();
-
-    wrapper.find('Text').prop('onChange')(event);
-    expect(wrapper.state().value).toBe(changeValue);
+    expect(helpText.html()).toContain(validInputProps.helpText);
 });
 
 test('set state to `focused` on `Text` focus', () => {
-    const wrapper = shallow(
-        <Input label={validInput.label} field={validInput.field} />
-    ).dive();
+    const wrapper = shallow(<Input {...validInputProps} />).dive();
 
     expect(wrapper.state().focused).toBeFalsy();
     wrapper.find('Text').simulate('focus');
     expect(wrapper.state().focused).toBeTruthy();
+});
+
+test('display reset button only when text has been typed in input', () => {
+    const wrapperFilled = shallow(
+        <Input classes={classes} {...validInputProps} />
+    ).dive();
+    expect(wrapperFilled.find(`.${classes.resetInput}`)).toHaveLength(1);
+
+    const wrapperEmpty = shallow(
+        <Input classes={classes} {...validInputProps} fieldValue={''} />
+    ).dive();
+    expect(wrapperEmpty.find(`.${classes.resetInput}`)).toHaveLength(0);
 });

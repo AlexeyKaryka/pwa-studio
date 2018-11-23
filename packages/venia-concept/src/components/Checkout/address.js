@@ -1,28 +1,17 @@
 import React, { Component, Fragment } from 'react';
-import { Form, Text } from 'informed';
+import { Form } from 'informed';
 import memoize from 'memoize-one';
-import { func, shape, string, bool } from 'prop-types';
+import PropTypes from 'prop-types';
 
 import classify from 'src/classify';
+import { default as Input, HelpTypes } from 'src/components/Input';
 import Button from 'src/components/Button';
-import Label from './label';
-import { invalidStateMessage } from './constants';
-import { isString } from 'util';
+import { fields, fieldsLabels } from './constants';
+import { validatorStateField } from './helpers';
 import defaultClasses from './address.css';
 
-const fields = [
-    'city',
-    'email',
-    'firstname',
-    'lastname',
-    'postcode',
-    'region_code',
-    'street',
-    'telephone'
-];
-
 const filterInitialValues = memoize(values =>
-    fields.reduce((acc, key) => {
+    Object.keys(fields).reduce((acc, key) => {
         acc[key] = values[key];
         return acc;
     }, {})
@@ -30,40 +19,70 @@ const filterInitialValues = memoize(values =>
 
 class AddressForm extends Component {
     static propTypes = {
-        cancel: func,
-        classes: shape({
-            body: string,
-            city: string,
-            email: string,
-            firstname: string,
-            footer: string,
-            lastname: string,
-            postcode: string,
-            region_code: string,
-            street0: string,
-            telephone: string,
-            validation: string
+        cancel: PropTypes.func,
+        classes: PropTypes.shape({
+            body: PropTypes.string,
+            city: PropTypes.string,
+            email: PropTypes.string,
+            firstname: PropTypes.string,
+            footer: PropTypes.string,
+            lastname: PropTypes.string,
+            postcode: PropTypes.string,
+            region_code: PropTypes.string,
+            street0: PropTypes.string,
+            telephone: PropTypes.string,
+            serverValidation: PropTypes.string,
+            textInput: PropTypes.string,
+            inputRoot: PropTypes.string
         }),
-        submit: func,
-        isAddressIncorrect: bool,
-        incorrectAddressMessage: string
+        submit: PropTypes.func,
+        isAddressIncorrect: PropTypes.bool,
+        incorrectAddressMessage: PropTypes.string
     };
 
-    //TODO: implement appropriate validation for the state field
-    validateState = value => {
-        return isString(value) && value.length > 1 ? null : invalidStateMessage;
+    getInput = inputProps => {
+        const {
+            classes: { textInput, inputRoot }
+        } = this.props;
+        const {
+            field,
+            validatorNotEmpty = null,
+            formApi,
+            formState
+        } = inputProps;
+        const inputClasses = {
+            input: textInput,
+            root: inputRoot,
+            rootFocused: ''
+        };
+
+        const setFieldValue = value => formApi.setValue(field, value);
+        const getError = () => formApi.getError(field);
+
+        return (
+            <Input
+                fieldValue={formState.values[field]}
+                setFieldValue={setFieldValue}
+                helpType={HelpTypes.error}
+                getHelpText={getError}
+                field={field}
+                classes={inputClasses}
+                label={fieldsLabels[field]}
+                {...validatorNotEmpty && { validatorNotEmpty }}
+                validateOnChange={true}
+                required={true}
+            />
+        );
     };
 
-    validationBlock = errors => {
-        const { isAddressIncorrect, incorrectAddressMessage } = this.props;
-        if (errors.region_code) {
-            return errors.region_code;
-        } else if (isAddressIncorrect) {
-            return incorrectAddressMessage;
-        } else {
-            return null;
-        }
-    };
+    get serverValidationMessage() {
+        const { classes, incorrectAddressMessage } = this.props;
+        return (
+            <div className={classes.serverValidation}>
+                {incorrectAddressMessage}
+            </div>
+        );
+    }
 
     render() {
         const { children, props } = this;
@@ -81,81 +100,81 @@ class AddressForm extends Component {
         );
     }
 
-    children = ({ formState }) => {
-        const { classes, submitting } = this.props;
+    children = ({ formApi, formState }) => {
+        const { classes, submitting, isAddressIncorrect } = this.props;
+        const {
+            city,
+            email,
+            firstname,
+            lastname,
+            postcode,
+            region_code,
+            street,
+            telephone
+        } = fields;
 
         return (
             <Fragment>
                 <div className={classes.body}>
                     <h2 className={classes.heading}>Shipping Address</h2>
                     <div className={classes.firstname}>
-                        <Label htmlFor={classes.firstname}>First Name</Label>
-                        <Text
-                            id={classes.firstname}
-                            field="firstname"
-                            className={classes.textInput}
-                        />
+                        {this.getInput({
+                            field: firstname,
+                            formApi,
+                            formState
+                        })}
                     </div>
                     <div className={classes.lastname}>
-                        <Label htmlFor={classes.lastname}>Last Name</Label>
-                        <Text
-                            id={classes.lastname}
-                            field="lastname"
-                            className={classes.textInput}
-                        />
+                        {this.getInput({
+                            field: lastname,
+                            formApi,
+                            formState
+                        })}
                     </div>
                     <div className={classes.street0}>
-                        <Label htmlFor={classes.street0}>Street</Label>
-                        <Text
-                            id={classes.street0}
-                            field="street[0]"
-                            className={classes.textInput}
-                        />
+                        {this.getInput({
+                            field: street,
+                            formApi,
+                            formState
+                        })}
                     </div>
                     <div className={classes.city}>
-                        <Label htmlFor={classes.city}>City</Label>
-                        <Text
-                            id={classes.city}
-                            field="city"
-                            className={classes.textInput}
-                        />
+                        {this.getInput({
+                            field: city,
+                            formApi,
+                            formState
+                        })}
                     </div>
                     <div className={classes.postcode}>
-                        <Label htmlFor={classes.postcode}>ZIP</Label>
-                        <Text
-                            id={classes.postcode}
-                            field="postcode"
-                            className={classes.textInput}
-                        />
+                        {this.getInput({
+                            field: postcode,
+                            formApi,
+                            formState
+                        })}
                     </div>
                     <div className={classes.region_code}>
-                        <Label htmlFor={classes.region_code}>State</Label>
-                        <Text
-                            id={classes.region_code}
-                            field="region_code"
-                            className={classes.textInput}
-                            validate={this.validateState}
-                        />
+                        {this.getInput({
+                            field: region_code,
+                            validatorNotEmpty: validatorStateField,
+                            formApi,
+                            formState
+                        })}
                     </div>
                     <div className={classes.telephone}>
-                        <Label htmlFor={classes.telephone}>Phone</Label>
-                        <Text
-                            id={classes.telephone}
-                            field="telephone"
-                            className={classes.textInput}
-                        />
+                        {this.getInput({
+                            field: telephone,
+                            formApi,
+                            formState
+                        })}
                     </div>
                     <div className={classes.email}>
-                        <Label htmlFor={classes.email}>Email</Label>
-                        <Text
-                            id={classes.email}
-                            field="email"
-                            className={classes.textInput}
-                        />
+                        {this.getInput({
+                            field: email,
+                            formApi,
+                            formState
+                        })}
                     </div>
-                    <div className={classes.validation}>
-                        {this.validationBlock(formState.errors)}
-                    </div>
+                    {isAddressIncorrect ? this.serverValidationMessage : null}
                 </div>
                 <div className={classes.footer}>
                     <Button type="submit" disabled={submitting}>

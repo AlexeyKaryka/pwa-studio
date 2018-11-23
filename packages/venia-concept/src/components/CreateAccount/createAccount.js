@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Input from 'src/components/Input';
 import { HelpTypes } from 'src/components/Input';
@@ -12,6 +12,14 @@ import ErrorDisplay from 'src/components/ErrorDisplay';
 import Checkbox from 'src/components/Checkbox';
 
 const { request } = RestApi.Magento2;
+
+const fields = {
+    email: 'email',
+    firstName: 'first-name',
+    familyName: 'family-name',
+    password: 'password',
+    confirmPassword: 'confirm-password'
+};
 
 class CreateAccount extends Component {
     static propTypes = {
@@ -97,77 +105,122 @@ class CreateAccount extends Component {
             passwordConfirmHelpType,
             isIncompleteOrInvalid
         } = this; // Uses `getters` defined above
+        const {
+            email,
+            firstName,
+            familyName,
+            password,
+            confirmPassword
+        } = fields;
 
         return (
             <div className={classes.root}>
                 <Form onSubmit={onCreateAccount}>
-                    <div className={classes.rewards}>
-                        <span>An account gives you access to rewards!</span>
-                    </div>
-
-                    <Input
-                        onChange={this.updateEmail}
-                        selected={true}
-                        label={'Email'}
-                        helpText={emailHelpText}
-                        helpType={emailHelpType}
-                        required={true}
-                        autoComplete={'email'}
-                        initialValue={defaultUsername}
-                        field="email"
-                    />
-
-                    <Input
-                        onChange={this.updateFirstName}
-                        label={'First Name'}
-                        required={true}
-                        autoComplete={'given-name'}
-                        field="first-name"
-                    />
-
-                    <Input
-                        onChange={this.updateLastName}
-                        label={'Last Name'}
-                        required={true}
-                        autoComplete={'family-name'}
-                        field="family-name"
-                    />
-
-                    <Input
-                        onChange={this.updatePassword}
-                        label={'Password'}
-                        type={'password'}
-                        required={true}
-                        placeholder={'Enter a password'}
-                        helpText={
-                            'Password must be at least 8 characters long and contain 3 or more of the following: Lowercase, Uppercase, Digits, or Special Characters. (ex. Password1)'
-                        }
-                        autoComplete={'new-password'}
-                        field="password"
-                    />
-
-                    <Input
-                        onChange={this.updatePasswordConfirm}
-                        label={'Confirm Password'}
-                        type={'password'}
-                        required={true}
-                        placeholder={'Enter the password again'}
-                        helpText={passwordConfirmHelpText}
-                        helpType={passwordConfirmHelpType}
-                        field="confirm-password"
-                    />
-
-                    <Checkbox
-                        label={'Subscribe to news and updates'}
-                        select={this.handleCheckboxChange}
-                        initialState={this.state.subscribe}
-                    />
-                    <div className={classes.createAccountButton}>
-                        <Button type="submit" disabled={isIncompleteOrInvalid}>
-                            Create Account
-                        </Button>
-                    </div>
-                    {errorMessage}
+                    {({ formApi, formState }) => (
+                        <Fragment>
+                            <div className={classes.rewards}>
+                                <span>
+                                    An account gives you access to rewards!
+                                </span>
+                            </div>
+                            <Input
+                                onChange={this.updateEmail}
+                                selected={true} //TODO: investigate whether it's possible to implement storing a value of one currently focused field in informed's Form, so that it would help to set up default focused field
+                                label={'Email'}
+                                helpText={emailHelpText}
+                                helpType={emailHelpType}
+                                fieldValue={formState.values[email]}
+                                setFieldValue={value =>
+                                    formApi.setValue(email, value)
+                                }
+                                getIsFieldTouched={() =>
+                                    formApi.getTouched(email)
+                                }
+                                required={true}
+                                autoComplete={'email'}
+                                initialValue={defaultUsername}
+                                field={email}
+                            />
+                            <Input
+                                onChange={this.updateFirstName}
+                                label={'First Name'}
+                                fieldValue={formState.values[firstName]}
+                                setFieldValue={value =>
+                                    formApi.setValue(firstName, value)
+                                }
+                                getIsFieldTouched={() =>
+                                    formApi.getTouched(firstName)
+                                }
+                                required={true}
+                                autoComplete={'given-name'}
+                                field={firstName}
+                            />
+                            <Input
+                                onChange={this.updateLastName}
+                                label={'Last Name'}
+                                fieldValue={formState.values[familyName]}
+                                setFieldValue={value =>
+                                    formApi.setValue(familyName, value)
+                                }
+                                getIsFieldTouched={() =>
+                                    formApi.getTouched(familyName)
+                                }
+                                required={true}
+                                autoComplete={'family-name'}
+                                field={familyName}
+                            />
+                            <Input
+                                onChange={this.updatePassword}
+                                label={'Password'}
+                                fieldValue={formState.values[password]}
+                                setFieldValue={value =>
+                                    formApi.setValue(password, value)
+                                }
+                                getIsFieldTouched={() =>
+                                    formApi.getTouched(password)
+                                }
+                                type={'password'}
+                                required={true}
+                                placeholder={'Enter a password'}
+                                helpText={
+                                    'Password must be at least 8 characters long and contain 3 or more of the following: Lowercase, Uppercase, Digits, or Special Characters. (ex. Password1)'
+                                }
+                                autoComplete={'new-password'}
+                                field={password}
+                            />
+                            <Input
+                                onChange={this.updatePasswordConfirm}
+                                label={'Confirm Password'}
+                                fieldValue={formState.values[confirmPassword]}
+                                setFieldValue={value =>
+                                    formApi.setValue(confirmPassword, value)
+                                }
+                                getIsFieldTouched={() =>
+                                    formApi.getTouched(confirmPassword)
+                                }
+                                type={'password'}
+                                required={true}
+                                placeholder={'Enter the password again'}
+                                helpText={passwordConfirmHelpText}
+                                helpType={passwordConfirmHelpType}
+                                field={confirmPassword}
+                            />
+                            <Checkbox
+                                label={'Subscribe to news and updates'}
+                                select={this.handleCheckboxChange}
+                                initialState={this.state.subscribe}
+                            />
+                            <div className={classes.createAccountButton}>
+                                <Button
+                                    type="submit"
+                                    disabled={isIncompleteOrInvalid}
+                                >
+                                    Create Account
+                                </Button>
+                            </div>
+                            {errorMessage}
+                        </Fragment>
+                    )}
                 </Form>
             </div>
         );

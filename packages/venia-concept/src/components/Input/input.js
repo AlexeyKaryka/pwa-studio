@@ -53,6 +53,11 @@ class Input extends Component {
         focused: false
     };
 
+    componentDidMount() {
+        const { initialValue, onChange } = this.props;
+        initialValue && onChange(initialValue);
+    }
+
     complexValidator = (value, values = null) => {
         const { validator, validatorNotEmpty, required } = this.props;
 
